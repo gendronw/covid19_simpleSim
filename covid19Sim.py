@@ -79,6 +79,7 @@ ax2.xaxis.set_tick_params(rotation=90, labelsize=10)
 ax2.legend()
 
 ax3.bar(dates, dIdt, label='newly Infected')
+ax3.legend()
 
 plt.tight_layout()
 
