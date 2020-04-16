@@ -69,15 +69,18 @@ dayIndex_toCountDead = 20
 
 construction_workers = 0.05
 work_From_Home = 0.15
-School_And_KinderGarden = 0.20
-cegep_And_University = 0.10
+KinderGarden = 0.06
+School = 0.06
+high_school = 0.06
+cegep_And_University = 0.12
 two_Meter_Rule = 0.25
-sunday_Close_Shop = 0.03
+sunday_Shop_closed = 0.03
 essential_Shop = 0.22
 
 begin_Social_Distancing = datetime.date(2020, 3, 14)
 
-start_Construction = datetime.date(2020, 4, 27)
+start_Construction = datetime.date(2020, 4, 20)
+start_sunday_shop = datetime.date(2020, 5, 3)
 start_school_before_summer = datetime.date(2020, 5, 19)
 close_school_summer = datetime.date(2020, 6, 20)
 start_school_september = datetime.date(2020, 8, 24)
@@ -86,29 +89,35 @@ start_school_september = datetime.date(2020, 8, 24)
 #socail activity of 1 mean a population without social distancing
 socialActivity = np.array([1])
 
-while (date_index < 300):
+while (date_index < 319):
     # increment date
     dates = np.append(dates, [dates[date_index]+timedelta(days=1)])
 
     #look to start social distancing
     if(dates[date_index+1] == begin_Social_Distancing):
-        socialActivity = np.append(socialActivity, socialActivity[date_index]-
-                                   (construction_workers + work_From_Home + School_And_KinderGarden
-                                    + cegep_And_University + two_Meter_Rule + sunday_Close_Shop))
+        socialActivity = np.append(socialActivity, socialActivity[date_index] -
+                                   (construction_workers + work_From_Home + KinderGarden + School + high_school
+                                    + cegep_And_University + two_Meter_Rule + sunday_Shop_closed))
         beta_to_reach = socialActivity[date_index+1] * beta_original
+
     elif(dates[date_index+1] == close_school_summer):
-        socialActivity = np.append(socialActivity, socialActivity[date_index]-School_And_KinderGarden)
+        socialActivity = np.append(socialActivity, socialActivity[date_index] - School - high_school)
         beta_to_reach = socialActivity[date_index+1] * beta_original
 
     #look to remove social distancing
     elif(dates[date_index+1] == start_Construction):
         socialActivity = np.append(socialActivity, socialActivity[date_index] + construction_workers)
         beta_to_reach = socialActivity[date_index + 1] * beta_original
+
+    elif(dates[date_index+1] == start_sunday_shop):
+        socialActivity = np.append(socialActivity, socialActivity[date_index] + sunday_Shop_closed)
+        beta_to_reach = socialActivity[date_index + 1] * beta_original
+
     elif (dates[date_index + 1] == start_school_before_summer):
-        socialActivity = np.append(socialActivity, socialActivity[date_index] + School_And_KinderGarden)
+        socialActivity = np.append(socialActivity, socialActivity[date_index] + School + high_school)
         beta_to_reach = socialActivity[date_index + 1] * beta_original
     elif (dates[date_index + 1] == start_school_september):
-        socialActivity = np.append(socialActivity, socialActivity[date_index] + School_And_KinderGarden + cegep_And_University)
+        socialActivity = np.append(socialActivity, socialActivity[date_index] + School + high_school + cegep_And_University)
         beta_to_reach = socialActivity[date_index + 1] * beta_original
 
     else:
@@ -198,14 +207,14 @@ ax1.plot_date(dates, R, label='recovered')
 ax1.xaxis.set_tick_params(rotation=90, labelsize=10)
 ax1.legend()
 
-ax2.plot_date(dates, R_value, label='R0_value & social activity')
+ax2.plot_date(dates, R_value, label='R0_value')
+ax2.set_ylabel('R0')
 ax2.xaxis.set_tick_params(rotation=90, labelsize=10)
 ax2.legend()
 
 ax2_twin = ax2.twinx()
 ax2_twin.set_ylabel('social', color='r')  # we already handled the x-label with ax1
-ax2_twin.plot_date(dates, socialActivity, color = 'r')
-
+ax2_twin.plot_date(dates, socialActivity, color='r', label='social activity')
 
 ax3.bar(dates, dIdt, label='Infected variation')
 ax3.plot_date(dates, infected_daily, color='k', label='Newly infected')
